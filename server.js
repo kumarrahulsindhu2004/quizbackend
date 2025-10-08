@@ -6,10 +6,10 @@ import userRoutes from "./routes/userRoutes.js";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ✅ Connect to MongoDB
+// Connect DB
 connectDB();
 
-// ✅ CORS Configuration (must be before routes)
+// ✅ CORS setup
 const allowedOrigins = [
   "http://localhost:5173",
   "https://quizchas2025.netlify.app",
@@ -17,12 +17,11 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like Postman)
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.warn("❌ CORS blocked for origin:", origin);
+      console.warn("❌ CORS blocked for:", origin);
       callback(new Error("Not allowed by CORS"));
     }
   },
@@ -31,23 +30,16 @@ const corsOptions = {
   allowedHeaders: ["Content-Type", "Authorization"],
 };
 
-// ✅ Use CORS middleware
-app.use(cors(corsOptions));
-
-// ✅ Handle preflight requests globally
-app.options("*", cors(corsOptions));
-
+app.use(cors(corsOptions)); // ✅ this is enough
 app.use(express.json());
 
-// ✅ Basic test route
+// Routes
 app.get("/", (req, res) => {
-  res.send("✅ Server is live and CORS configured correctly!");
+  res.send("✅ Server running with CORS configured correctly!");
 });
-
-// ✅ API routes
 app.use("/user", userRoutes);
 
-// ✅ Start server
+// Server
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🚀 Server is running on port ${PORT}`);
 });
