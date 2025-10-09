@@ -1,70 +1,60 @@
 import mongoose from "mongoose";
-import bcrypt from 'bcrypt'
-const userSchema = new mongoose.Schema({
-    name:{
-        type:String,
-        required:true
-    },
-   email: {
+import bcrypt from "bcrypt";
+
+const userSchema = new mongoose.Schema(
+  {
+    firstName: { type: String, required: true },
+    middleName: { type: String },
+    lastName: { type: String, required: true },
+
+    email: {
       type: String,
       required: true,
-      unique: true, // prevent duplicate accounts
+      unique: true,
       lowercase: true,
       match: [/^\S+@\S+\.\S+$/, "Please enter a valid email"],
     },
-    age:{
-        type:Number,
-        required:true
-    },
-   mobile: {
+
+    gender: { type: String, enum: ["Male", "Female", "Other"], required: true },
+
+    mobile: {
       type: String,
       required: true,
       unique: true,
       match: [/^\d{10}$/, "Please enter a valid 10-digit mobile number"],
     },
-     address:{
-        type:String,
-        required:true
-    },
-     password: {
+
+    dateOfBirth: { type: Date, required: true },
+
+    address: { type: String, required: true },
+    pinCode: {
       type: String,
       required: true,
-      minlength: 6, // basic password rule
+      match: [/^\d{6}$/, "Please enter a valid 6-digit PIN code"],
     },
-    profile: {
-      education_level: { type: String },
-      college_name: { type: String },
-      
-    },
-})
 
+    schoolName: { type: String, required: true },
+    profilePhoto: { type: String, default: "" },
 
-userSchema.pre('save',async function (next) {
-const user = this
+    password: { type: String, required: true, minlength: 6 },
+  },
+  { timestamps: true }
+);
 
-// Has the password only if has been modified or in new
-if(!user.isModified('password')) return next()
-    try {
-        // hash password generation
-        const salt = await bcrypt.genSalt(10);
-        // hash password
+// Hash password before saving
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
 
-        const hashedPassword = await bcrypt.hash(user.password,salt)
+userSchema.methods.comparePassword = async function (candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.password);
+};
 
-        // override the palin password with the hashed one
-        user.password=hashedPassword
-        next();
-    } catch (error) {
-        return next(error)
-    }
-})
-
-userSchema.methods.comparePassword = async function (candidatePassword){
-    try {
-        const isMatch = await bcrypt.compare(candidatePassword,this.password)
-        return isMatch
-    } catch (error) {
-        throw error
-    }
-} 
-export const User = mongoose.model('User',userSchema);
+export const User = mongoose.model("User", userSchema);
