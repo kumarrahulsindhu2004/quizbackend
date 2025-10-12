@@ -34,6 +34,11 @@ const userSchema = new mongoose.Schema(
     },
 
     schoolName: { type: String, required: true },
+      studentClass: { 
+      type: String, 
+      required: true, 
+      enum: ["6th","7th","8th","9th","10th","11th","12th"] // optional: enforce valid classes
+    },
     profilePhoto: { type: String, default: "" },
 
     password: { type: String, required: true, minlength: 6 },
